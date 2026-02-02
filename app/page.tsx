@@ -227,16 +227,28 @@ export default function SebastianWorld() {
   };
 
   const generateMathProblem = () => {
-    const ops = ['+', '-'];
+    // 3rd grade level: +, -, × with larger numbers
+    const ops = ['+', '-', '×', '×'];  // multiplication weighted more for practice
     const op = ops[Math.floor(Math.random() * ops.length)];
-    let num1 = Math.floor(Math.random() * 10) + 1;
-    let num2 = Math.floor(Math.random() * 10) + 1;
+    let num1: number, num2: number, answer: number;
     
-    if (op === '-' && num2 > num1) {
-      [num1, num2] = [num2, num1];
+    if (op === '×') {
+      // Multiplication: focus on times tables up to 12
+      num1 = Math.floor(Math.random() * 12) + 1;
+      num2 = Math.floor(Math.random() * 12) + 1;
+      answer = num1 * num2;
+    } else if (op === '+') {
+      // Addition: two-digit numbers
+      num1 = Math.floor(Math.random() * 50) + 10;
+      num2 = Math.floor(Math.random() * 50) + 10;
+      answer = num1 + num2;
+    } else {
+      // Subtraction: ensure positive result, two-digit numbers
+      num1 = Math.floor(Math.random() * 50) + 25;
+      num2 = Math.floor(Math.random() * 25) + 1;
+      answer = num1 - num2;
     }
     
-    const answer = op === '+' ? num1 + num2 : num1 - num2;
     setMathProblem({ num1, num2, op, answer });
     setUserAnswer('');
     setMathResult(null);
