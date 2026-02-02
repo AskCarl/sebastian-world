@@ -134,6 +134,9 @@ export default function SebastianWorld() {
   const [drawingName, setDrawingName] = useState('');
   
   // Photo album state
+  // Weather state
+  const [weather, setWeather] = useState<{temp: string, condition: string, icon: string} | null>(null);
+
   const [photos, setPhotos] = useState<{id: string, url: string, caption: string, isImage: boolean}[]>([
     { id: '1', url: '/photos/sea-turtle.jpg', caption: 'Swimming with Sea Turtles 🐢', isImage: true },
     { id: '2', url: '/photos/fu-bao-1.jpg', caption: 'Fu Bao Eating Bamboo 🐼', isImage: true },
@@ -143,6 +146,27 @@ export default function SebastianWorld() {
   ]);
 
   const today = new Date().toISOString().split('T')[0];
+
+  // Fetch weather for Palos Verdes
+  useEffect(() => {
+    fetch('https://wttr.in/Palos+Verdes+Estates?format=j1')
+      .then(res => res.json())
+      .then(data => {
+        const current = data.current_condition[0];
+        const tempF = current.temp_F;
+        const condition = current.weatherDesc[0].value;
+        // Map weather to fun emoji
+        let icon = '☀️';
+        const desc = condition.toLowerCase();
+        if (desc.includes('cloud')) icon = '☁️';
+        if (desc.includes('rain')) icon = '🌧️';
+        if (desc.includes('sun') || desc.includes('clear')) icon = '☀️';
+        if (desc.includes('fog') || desc.includes('mist')) icon = '🌫️';
+        if (desc.includes('part')) icon = '⛅';
+        setWeather({ temp: tempF, condition, icon });
+      })
+      .catch(() => setWeather(null));
+  }, []);
 
   // Load data from localStorage
   useEffect(() => {
@@ -483,6 +507,14 @@ export default function SebastianWorld() {
         <p className="text-xl text-white drop-shadow-[2px_2px_0_#333] mt-2">
           Welcome, Bash! Let&apos;s have fun! 🚀
         </p>
+        {/* Weather */}
+        {weather && (
+          <div className="mt-4 inline-block bg-white/80 rounded-full px-6 py-2 pixel-border">
+            <span className="text-2xl mr-2">{weather.icon}</span>
+            <span className="font-bold text-gray-800">{weather.temp}°F</span>
+            <span className="text-gray-600 ml-2 text-sm">in Palos Verdes</span>
+          </div>
+        )}
       </div>
 
       <div className="max-w-6xl mx-auto grid gap-6 md:grid-cols-2">
