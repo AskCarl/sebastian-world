@@ -158,8 +158,9 @@ export default function SebastianWorld() {
     const savedDrawings = localStorage.getItem('sebastianDrawings');
     if (savedDrawings) setSavedDrawings(JSON.parse(savedDrawings));
     
-    const savedPhotos = localStorage.getItem('sebastianPhotos');
-    if (savedPhotos) setPhotos(JSON.parse(savedPhotos));
+    // Photos are now hardcoded with real images - don't load from localStorage
+    // const savedPhotos = localStorage.getItem('sebastianPhotos');
+    // if (savedPhotos) setPhotos(JSON.parse(savedPhotos));
     
     const savedTodayJournal = localStorage.getItem('sebastianJournalToday');
     const savedJournalDate = localStorage.getItem('sebastianJournalDate');
@@ -218,9 +219,10 @@ export default function SebastianWorld() {
     localStorage.setItem('sebastianDrawings', JSON.stringify(savedDrawings));
   }, [savedDrawings]);
 
-  useEffect(() => {
-    localStorage.setItem('sebastianPhotos', JSON.stringify(photos));
-  }, [photos]);
+  // Photos are hardcoded now - no need to save to localStorage
+  // useEffect(() => {
+  //   localStorage.setItem('sebastianPhotos', JSON.stringify(photos));
+  // }, [photos]);
 
   const addBucks = (amount: number) => {
     setBashBucks(prev => Math.max(0, prev + amount));
