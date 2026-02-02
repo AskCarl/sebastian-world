@@ -259,7 +259,17 @@ export default function SebastianWorld() {
   const checkMathAnswer = () => {
     if (parseInt(userAnswer) === mathProblem.answer) {
       setMathResult('correct');
-      setScore(prev => prev + 1);
+      const newScore = score + 1;
+      setScore(newScore);
+      
+      // Award $1 Bash Buck for every 10 correct answers!
+      if (newScore % 10 === 0) {
+        addBucks(1);
+        setTimeout(() => {
+          alert(`🎉 Amazing! 10 correct answers = +$1 Bash Buck! 🐷💰`);
+        }, 500);
+      }
+      
       setTimeout(() => generateMathProblem(), 1500);
     } else {
       setMathResult('wrong');
@@ -527,6 +537,7 @@ export default function SebastianWorld() {
           </h2>
           <div className="text-center mb-4">
             <p className="text-lg text-blue-600">Score: ⭐ {score}</p>
+            <p className="text-xs text-blue-500">💰 Get 10 correct = +$1 Bash Buck! ({10 - (score % 10)} more to go!)</p>
           </div>
           <div className="bg-white rounded-lg p-4 text-center pixel-border">
             <div className="text-3xl font-bold text-gray-800 mb-4">
