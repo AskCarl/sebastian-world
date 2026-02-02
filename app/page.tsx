@@ -134,11 +134,12 @@ export default function SebastianWorld() {
   const [drawingName, setDrawingName] = useState('');
   
   // Photo album state
-  const [photos, setPhotos] = useState<{id: string, url: string, caption: string}[]>([
-    { id: '1', url: '🐢', caption: 'Sea Turtle' },
-    { id: '2', url: '🐼', caption: 'Fu Bao' },
-    { id: '3', url: '🐕', caption: 'Moby' },
-    { id: '4', url: '🌺', caption: 'Hawaii' },
+  const [photos, setPhotos] = useState<{id: string, url: string, caption: string, isImage: boolean}[]>([
+    { id: '1', url: '/photos/sea-turtle.jpg', caption: 'Swimming with Sea Turtles 🐢', isImage: true },
+    { id: '2', url: '/photos/fu-bao-1.jpg', caption: 'Fu Bao Eating Bamboo 🐼', isImage: true },
+    { id: '3', url: '/photos/fu-bao-2.jpg', caption: 'Sleepy Fu Bao 😴', isImage: true },
+    { id: '4', url: '/photos/moby.jpg', caption: 'Moby the Snow Dog 🐕', isImage: true },
+    { id: '5', url: '/photos/hawaii.jpg', caption: 'Hawaii Adventure 🌺', isImage: true },
   ]);
 
   const today = new Date().toISOString().split('T')[0];
@@ -646,19 +647,26 @@ export default function SebastianWorld() {
         </div>
 
         {/* PHOTO ALBUM */}
-        <div className="pixel-border bg-rose-100 rounded-lg p-6">
+        <div className="pixel-border bg-rose-100 rounded-lg p-6 md:col-span-2">
           <h2 className="text-2xl font-bold text-center mb-4 text-rose-800">
-            📸 Photo Album 📸
+            📸 My Photo Album 📸
           </h2>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
             {photos.map(photo => (
-              <div key={photo.id} className="bg-white rounded-lg p-3 pixel-border text-center">
-                <div className="text-5xl mb-1">{photo.url}</div>
-                <p className="font-bold text-rose-700 text-sm">{photo.caption}</p>
+              <div key={photo.id} className="bg-white rounded-lg p-2 pixel-border text-center hover:scale-105 transition-transform">
+                {photo.isImage ? (
+                  <img 
+                    src={photo.url} 
+                    alt={photo.caption}
+                    className="w-full h-32 object-cover rounded-lg mb-2"
+                  />
+                ) : (
+                  <div className="text-5xl mb-1">{photo.url}</div>
+                )}
+                <p className="font-bold text-rose-700 text-xs">{photo.caption}</p>
               </div>
             ))}
           </div>
-          <p className="text-center mt-3 text-rose-600 text-xs">📷 Add real photos in admin mode!</p>
         </div>
 
         {/* DAILY JOKE */}
