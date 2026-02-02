@@ -461,10 +461,14 @@ export default function SebastianWorld() {
       
       {/* Header */}
       <div className="text-center mb-8">
-        <h1 className="text-4xl md:text-6xl font-bold text-white drop-shadow-[3px_3px_0_#333] mb-2">
-          🎮 Sebastian&apos;s World 🧱
-        </h1>
-        <p className="text-xl text-white drop-shadow-[2px_2px_0_#333]">
+        <div className="flex items-center justify-center gap-4">
+          <img src="/photos/steve.png" alt="Steve" className="w-16 md:w-24 drop-shadow-lg" />
+          <h1 className="text-4xl md:text-6xl font-bold text-white drop-shadow-[3px_3px_0_#333]">
+            Sebastian&apos;s World
+          </h1>
+          <img src="/photos/steve.png" alt="Steve" className="w-16 md:w-24 drop-shadow-lg scale-x-[-1]" />
+        </div>
+        <p className="text-xl text-white drop-shadow-[2px_2px_0_#333] mt-2">
           Welcome, Bash! Let&apos;s have fun! 🚀
         </p>
       </div>
