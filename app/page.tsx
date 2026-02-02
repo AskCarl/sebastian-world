@@ -440,7 +440,25 @@ export default function SebastianWorld() {
   const colors = ['#000000', '#FF0000', '#FF9900', '#FFFF00', '#00FF00', '#00FFFF', '#0066FF', '#9900FF', '#FF00FF', '#8B4513'];
 
   return (
-    <main className="min-h-screen p-4 md:p-8">
+    <main className="min-h-screen p-4 md:p-8 relative overflow-hidden">
+      {/* Minecraft Decorations */}
+      <img 
+        src="/photos/creeper.png" 
+        alt="Creeper" 
+        className="fixed right-0 top-1/4 w-20 md:w-32 opacity-80 hover:opacity-100 transition-opacity z-10 hover:scale-110 transition-transform"
+        style={{ transform: 'translateX(30%)' }}
+      />
+      <img 
+        src="/photos/crafting-table.png" 
+        alt="Crafting Table" 
+        className="fixed left-4 bottom-20 w-16 md:w-24 opacity-70 hover:opacity-100 transition-opacity z-10"
+      />
+      <img 
+        src="/photos/diamond-pickaxe.png" 
+        alt="Diamond Pickaxe" 
+        className="fixed left-4 top-1/3 w-12 md:w-16 opacity-70 hover:opacity-100 transition-opacity z-10 rotate-45"
+      />
+      
       {/* Header */}
       <div className="text-center mb-8">
         <h1 className="text-4xl md:text-6xl font-bold text-white drop-shadow-[3px_3px_0_#333] mb-2">
