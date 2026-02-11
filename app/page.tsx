@@ -245,6 +245,22 @@ export default function SebastianWorld() {
   const [showStickers, setShowStickers] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
 
+  // Virtual Pet state
+  const [pet, setPet] = useState<{
+    name: string;
+    type: string;
+    emoji: string;
+    hunger: number;
+    happiness: number;
+    energy: number;
+    level: number;
+    xp: number;
+    lastFed: string;
+    lastPlayed: string;
+  } | null>(null);
+  const [showPetSelector, setShowPetSelector] = useState(false);
+  const [petNameInput, setPetNameInput] = useState('');
+
   const today = new Date().toISOString().split('T')[0];
 
   // Fetch weather for Palos Verdes
@@ -341,6 +357,23 @@ export default function SebastianWorld() {
     }
     
     localStorage.setItem('sebastianLastVisit', today);
+    
+    // Load pet data
+    const savedPet = localStorage.getItem('sebastianPet');
+    if (savedPet) {
+      const petData = JSON.parse(savedPet);
+      // Decay stats based on time since last visit
+      const lastVisit = localStorage.getItem('sebastianLastVisit');
+      if (lastVisit && lastVisit !== today) {
+        const daysSince = Math.min(3, Math.ceil((new Date(today).getTime() - new Date(lastVisit).getTime()) / (1000 * 60 * 60 * 24)));
+        petData.hunger = Math.max(0, petData.hunger - (10 * daysSince));
+        petData.happiness = Math.max(0, petData.happiness - (5 * daysSince));
+        petData.energy = Math.min(100, petData.energy + (20 * daysSince));
+      }
+      setPet(petData);
+    } else {
+      setShowPetSelector(true);
+    }
     
     const todayDate = new Date();
     const dayOfYear = Math.floor((todayDate.getTime() - new Date(todayDate.getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24));
@@ -571,6 +604,100 @@ export default function SebastianWorld() {
         ctx.fillText(sticker, x, y);
       }
     }
+  };
+
+  // Pet functions
+  const adoptPet = (type: string, emoji: string) => {
+    if (!petNameInput.trim()) return;
+    const newPet = {
+      name: petNameInput.trim(),
+      type,
+      emoji,
+      hunger: 80,
+      happiness: 80,
+      energy: 80,
+      level: 1,
+      xp: 0,
+      lastFed: today,
+      lastPlayed: today,
+    };
+    setPet(newPet);
+    localStorage.setItem('sebastianPet', JSON.stringify(newPet));
+    setShowPetSelector(false);
+  };
+
+  const feedPet = () => {
+    if (!pet || bashBucks < 2) return;
+    const updatedPet = {
+      ...pet,
+      hunger: Math.min(100, pet.hunger + 25),
+      happiness: Math.min(100, pet.happiness + 5),
+      xp: pet.xp + 10,
+      lastFed: today,
+    };
+    if (updatedPet.xp >= updatedPet.level * 50) {
+      updatedPet.level += 1;
+      updatedPet.xp = 0;
+    }
+    setPet(updatedPet);
+    localStorage.setItem('sebastianPet', JSON.stringify(updatedPet));
+    addBucks(-2);
+  };
+
+  const playWithPet = () => {
+    if (!pet || bashBucks < 1 || pet.energy < 20) return;
+    const updatedPet = {
+      ...pet,
+      happiness: Math.min(100, pet.happiness + 20),
+      energy: Math.max(0, pet.energy - 20),
+      hunger: Math.max(0, pet.hunger - 10),
+      xp: pet.xp + 15,
+      lastPlayed: today,
+    };
+    if (updatedPet.xp >= updatedPet.level * 50) {
+      updatedPet.level += 1;
+      updatedPet.xp = 0;
+    }
+    setPet(updatedPet);
+    localStorage.setItem('sebastianPet', JSON.stringify(updatedPet));
+    addBucks(-1);
+  };
+
+  const groomPet = () => {
+    if (!pet || bashBucks < 1) return;
+    const updatedPet = {
+      ...pet,
+      happiness: Math.min(100, pet.happiness + 15),
+      xp: pet.xp + 5,
+    };
+    if (updatedPet.xp >= updatedPet.level * 50) {
+      updatedPet.level += 1;
+      updatedPet.xp = 0;
+    }
+    setPet(updatedPet);
+    localStorage.setItem('sebastianPet', JSON.stringify(updatedPet));
+    addBucks(-1);
+  };
+
+  const letPetSleep = () => {
+    if (!pet) return;
+    const updatedPet = {
+      ...pet,
+      energy: Math.min(100, pet.energy + 40),
+      hunger: Math.max(0, pet.hunger - 5),
+    };
+    setPet(updatedPet);
+    localStorage.setItem('sebastianPet', JSON.stringify(updatedPet));
+  };
+
+  const getPetMood = () => {
+    if (!pet) return '';
+    const avg = (pet.hunger + pet.happiness + pet.energy) / 3;
+    if (avg >= 80) return '😄';
+    if (avg >= 60) return '🙂';
+    if (avg >= 40) return '😐';
+    if (avg >= 20) return '😕';
+    return '😢';
   };
 
   const loadTemplate = (template: string) => {
@@ -912,6 +1039,111 @@ export default function SebastianWorld() {
             </div>
           </div>
         </div>
+
+        {/* VIRTUAL PET */}
+        {pet && (
+          <div className="pixel-border bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg p-6 md:col-span-2">
+            <h2 className="text-2xl font-bold text-center mb-4 text-purple-800">
+              🐾 My Virtual Pet 🐾
+            </h2>
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Pet Display */}
+              <div className="bg-white/80 rounded-lg p-4 pixel-border text-center">
+                <div className="text-8xl mb-2 animate-bounce">{pet.emoji}</div>
+                <h3 className="text-xl font-bold text-purple-700">{pet.name}</h3>
+                <p className="text-sm text-gray-600">Level {pet.level} {pet.type}</p>
+                <div className="text-4xl mt-2">{getPetMood()}</div>
+                
+                {/* XP Bar */}
+                <div className="mt-3">
+                  <div className="bg-gray-200 rounded-full h-4 overflow-hidden">
+                    <div 
+                      className="bg-gradient-to-r from-purple-400 to-pink-400 h-full transition-all duration-500"
+                      style={{ width: `${(pet.xp / (pet.level * 50)) * 100}%` }}
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">XP to next level: {pet.xp}/{pet.level * 50}</p>
+                </div>
+              </div>
+              
+              {/* Pet Stats */}
+              <div className="space-y-3">
+                {/* Hunger */}
+                <div>
+                  <div className="flex justify-between text-sm font-bold text-gray-700 mb-1">
+                    <span>🍖 Hunger</span>
+                    <span>{pet.hunger}%</span>
+                  </div>
+                  <div className="bg-gray-200 rounded-full h-4 overflow-hidden">
+                    <div 
+                      className={`h-full transition-all duration-500 ${pet.hunger > 60 ? 'bg-green-400' : pet.hunger > 30 ? 'bg-yellow-400' : 'bg-red-400'}`}
+                      style={{ width: `${pet.hunger}%` }}
+                    />
+                  </div>
+                </div>
+                
+                {/* Happiness */}
+                <div>
+                  <div className="flex justify-between text-sm font-bold text-gray-700 mb-1">
+                    <span>😊 Happiness</span>
+                    <span>{pet.happiness}%</span>
+                  </div>
+                  <div className="bg-gray-200 rounded-full h-4 overflow-hidden">
+                    <div 
+                      className={`h-full transition-all duration-500 ${pet.happiness > 60 ? 'bg-pink-400' : pet.happiness > 30 ? 'bg-yellow-400' : 'bg-red-400'}`}
+                      style={{ width: `${pet.happiness}%` }}
+                    />
+                  </div>
+                </div>
+                
+                {/* Energy */}
+                <div>
+                  <div className="flex justify-between text-sm font-bold text-gray-700 mb-1">
+                    <span>⚡ Energy</span>
+                    <span>{pet.energy}%</span>
+                  </div>
+                  <div className="bg-gray-200 rounded-full h-4 overflow-hidden">
+                    <div 
+                      className={`h-full transition-all duration-500 ${pet.energy > 60 ? 'bg-blue-400' : pet.energy > 30 ? 'bg-yellow-400' : 'bg-red-400'}`}
+                      style={{ width: `${pet.energy}%` }}
+                    />
+                  </div>
+                </div>
+                
+                {/* Action Buttons */}
+                <div className="grid grid-cols-2 gap-2 mt-4">
+                  <button 
+                    onClick={feedPet}
+                    disabled={bashBucks < 2 || pet.hunger >= 100}
+                    className="bg-green-400 text-white font-bold py-2 px-3 rounded-lg text-sm hover:bg-green-500 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                  >
+                    🍖 Feed (-$2)
+                  </button>
+                  <button 
+                    onClick={playWithPet}
+                    disabled={bashBucks < 1 || pet.energy < 20 || pet.happiness >= 100}
+                    className="bg-pink-400 text-white font-bold py-2 px-3 rounded-lg text-sm hover:bg-pink-500 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                  >
+                    🎾 Play (-$1)
+                  </button>
+                  <button 
+                    onClick={groomPet}
+                    disabled={bashBucks < 1 || pet.happiness >= 100}
+                    className="bg-purple-400 text-white font-bold py-2 px-3 rounded-lg text-sm hover:bg-purple-500 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                  >
+                    ✨ Groom (-$1)
+                  </button>
+                  <button 
+                    onClick={letPetSleep}
+                    className="bg-blue-400 text-white font-bold py-2 px-3 rounded-lg text-sm hover:bg-blue-500"
+                  >
+                    😴 Sleep (Free)
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* DRAWING PAD */}
         <div className="pixel-border bg-indigo-100 rounded-lg p-6 md:col-span-2">
@@ -1295,6 +1527,66 @@ export default function SebastianWorld() {
       <footer className="text-center mt-8 text-white drop-shadow-[2px_2px_0_#333]">
         <p>Made with ❤️ for Sebastian | <span onClick={handleAdminClick} className="cursor-pointer">Dad + Carl 🦞</span></p>
       </footer>
+
+      {/* Pet Selector Modal */}
+      {showPetSelector && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full pixel-border max-h-[90vh] overflow-y-auto">
+            <h2 className="text-2xl font-bold text-purple-800 mb-4 text-center">🐾 Adopt a Pet! 🐾</h2>
+            <p className="text-center text-gray-600 mb-4">Choose your new best friend and give them a name!</p>
+            
+            <div className="mb-4">
+              <label className="block text-gray-700 font-bold mb-2">Pet Name:</label>
+              <input
+                type="text"
+                value={petNameInput}
+                onChange={(e) => setPetNameInput(e.target.value)}
+                placeholder="e.g., Buddy, Luna, Max"
+                className="w-full border-2 border-purple-300 rounded-lg p-2"
+              />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <button 
+                onClick={() => adoptPet('Dog', '🐕')}
+                disabled={!petNameInput.trim()}
+                className="bg-white border-4 border-purple-300 rounded-lg p-4 hover:bg-purple-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <div className="text-4xl mb-2">🐕</div>
+                <div className="font-bold text-purple-700">Dog</div>
+                <div className="text-xs text-gray-500">Loyal & playful</div>
+              </button>
+              <button 
+                onClick={() => adoptPet('Cat', '🐱')}
+                disabled={!petNameInput.trim()}
+                className="bg-white border-4 border-purple-300 rounded-lg p-4 hover:bg-purple-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <div className="text-4xl mb-2">🐱</div>
+                <div className="font-bold text-purple-700">Cat</div>
+                <div className="text-xs text-gray-500">Curious & cuddly</div>
+              </button>
+              <button 
+                onClick={() => adoptPet('Dragon', '🐉')}
+                disabled={!petNameInput.trim()}
+                className="bg-white border-4 border-purple-300 rounded-lg p-4 hover:bg-purple-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <div className="text-4xl mb-2">🐉</div>
+                <div className="font-bold text-purple-700">Dragon</div>
+                <div className="text-xs text-gray-500">Magical & brave</div>
+              </button>
+              <button 
+                onClick={() => adoptPet('Unicorn', '🦄')}
+                disabled={!petNameInput.trim()}
+                className="bg-white border-4 border-purple-300 rounded-lg p-4 hover:bg-purple-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <div className="text-4xl mb-2">🦄</div>
+                <div className="font-bold text-purple-700">Unicorn</div>
+                <div className="text-xs text-gray-500">Sparkly & kind</div>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Admin Modal */}
       {showAdmin && (
