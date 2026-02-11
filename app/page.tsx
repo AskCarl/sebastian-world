@@ -261,6 +261,13 @@ export default function SebastianWorld() {
   const [showPetSelector, setShowPetSelector] = useState(false);
   const [petNameInput, setPetNameInput] = useState('');
 
+  // Memory Match Game state
+  const [memoryCards, setMemoryCards] = useState<{id: number; emoji: string; isFlipped: boolean; isMatched: boolean}[]>([]);
+  const [flippedCards, setFlippedCards] = useState<number[]>([]);
+  const [memoryMoves, setMemoryMoves] = useState(0);
+  const [memoryGameWon, setMemoryGameWon] = useState(false);
+  const [memoryBestScore, setMemoryBestScore] = useState<number | null>(null);
+
   const today = new Date().toISOString().split('T')[0];
 
   // Fetch weather for Palos Verdes
@@ -357,6 +364,13 @@ export default function SebastianWorld() {
     }
     
     localStorage.setItem('sebastianLastVisit', today);
+    
+    // Load memory game best score
+    const savedMemoryBest = localStorage.getItem('sebastianMemoryBest');
+    if (savedMemoryBest) setMemoryBestScore(parseInt(savedMemoryBest));
+    
+    // Initialize memory game
+    initMemoryGame();
     
     // Load pet data
     const savedPet = localStorage.getItem('sebastianPet');
@@ -700,6 +714,82 @@ export default function SebastianWorld() {
     return '😢';
   };
 
+  // Memory Match Game functions
+  const initMemoryGame = () => {
+    const emojis = ['🐢', '🐕', '🦁', '🦖', '🚀', '🌈', '💎', '⚡'];
+    const pairs = [...emojis, ...emojis];
+    // Shuffle
+    for (let i = pairs.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pairs[i], pairs[j]] = [pairs[j], pairs[i]];
+    }
+    const cards = pairs.map((emoji, index) => ({
+      id: index,
+      emoji,
+      isFlipped: false,
+      isMatched: false,
+    }));
+    setMemoryCards(cards);
+    setFlippedCards([]);
+    setMemoryMoves(0);
+    setMemoryGameWon(false);
+  };
+
+  const flipCard = (id: number) => {
+    if (memoryGameWon) return;
+    if (flippedCards.length === 2) return;
+    if (memoryCards[id].isFlipped || memoryCards[id].isMatched) return;
+
+    const newCards = [...memoryCards];
+    newCards[id].isFlipped = true;
+    setMemoryCards(newCards);
+    
+    const newFlipped = [...flippedCards, id];
+    setFlippedCards(newFlipped);
+
+    if (newFlipped.length === 2) {
+      setMemoryMoves(memoryMoves + 1);
+      const [first, second] = newFlipped;
+      
+      if (newCards[first].emoji === newCards[second].emoji) {
+        // Match!
+        setTimeout(() => {
+          const matchedCards = [...memoryCards];
+          matchedCards[first].isMatched = true;
+          matchedCards[second].isMatched = true;
+          setMemoryCards(matchedCards);
+          setFlippedCards([]);
+          
+          // Check for win
+          if (matchedCards.every(card => card.isMatched)) {
+            setMemoryGameWon(true);
+            const reward = memoryMoves <= 12 ? 5 : memoryMoves <= 16 ? 3 : 1;
+            addBucks(reward);
+            
+            // Update best score
+            if (!memoryBestScore || memoryMoves < memoryBestScore) {
+              setMemoryBestScore(memoryMoves);
+              localStorage.setItem('sebastianMemoryBest', memoryMoves.toString());
+            }
+            
+            setTimeout(() => {
+              alert(`🎉 You won in ${memoryMoves} moves! +$${reward} Bash Bucks!`);
+            }, 500);
+          }
+        }, 500);
+      } else {
+        // No match
+        setTimeout(() => {
+          const resetCards = [...memoryCards];
+          resetCards[first].isFlipped = false;
+          resetCards[second].isFlipped = false;
+          setMemoryCards(resetCards);
+          setFlippedCards([]);
+        }, 1000);
+      }
+    }
+  };
+
   const loadTemplate = (template: string) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -1015,6 +1105,65 @@ export default function SebastianWorld() {
               <div className="mt-3 text-xl text-red-500 font-bold wiggle">Try again! 💪</div>
             )}
           </div>
+        </div>
+
+        {/* MEMORY MATCH GAME */}
+        <div className="pixel-border bg-gradient-to-br from-teal-100 to-cyan-100 rounded-lg p-6">
+          <h2 className="text-2xl font-bold text-center mb-4 text-teal-800">
+            🧠 Memory Match 🧠
+          </h2>
+          <div className="text-center mb-4">
+            <p className="text-lg text-teal-600">Moves: {memoryMoves}</p>
+            {memoryBestScore && (
+              <p className="text-xs text-teal-500">🏆 Best: {memoryBestScore} moves</p>
+            )}
+            <p className="text-xs text-teal-500 mt-1">
+              💰 Win bonus: 5/3/1 Bash Bucks (12/16/17+ moves)
+            </p>
+          </div>
+          
+          {memoryGameWon ? (
+            <div className="text-center bg-white rounded-lg p-6 pixel-border">
+              <div className="text-6xl mb-3">🎉</div>
+              <p className="text-xl font-bold text-green-500 mb-2">You Won!</p>
+              <p className="text-gray-600 mb-4">Completed in {memoryMoves} moves</p>
+              <button 
+                onClick={initMemoryGame}
+                className="lego-btn-green text-white font-bold py-2 px-6 rounded-lg"
+              >
+                Play Again 🔄
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-4 gap-2 mb-4 max-w-xs mx-auto">
+                {memoryCards.map((card) => (
+                  <button
+                    key={card.id}
+                    onClick={() => flipCard(card.id)}
+                    disabled={card.isFlipped || card.isMatched}
+                    className={`aspect-square rounded-lg text-3xl font-bold transition-all duration-300 ${
+                      card.isMatched 
+                        ? 'bg-green-200 border-4 border-green-400 opacity-50' 
+                        : card.isFlipped 
+                          ? 'bg-white border-4 border-teal-400' 
+                          : 'bg-gradient-to-br from-teal-400 to-cyan-500 border-4 border-teal-500 hover:scale-105'
+                    }`}
+                  >
+                    {card.isFlipped || card.isMatched ? card.emoji : '❓'}
+                  </button>
+                ))}
+              </div>
+              <div className="flex justify-center">
+                <button 
+                  onClick={initMemoryGame}
+                  className="bg-gray-400 text-white font-bold py-2 px-4 rounded-lg text-sm hover:bg-gray-500"
+                >
+                  New Game 🔄
+                </button>
+              </div>
+            </>
+          )}
         </div>
 
         {/* STREAK COUNTER */}
