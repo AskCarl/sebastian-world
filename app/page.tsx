@@ -312,6 +312,11 @@ export default function SebastianWorld() {
 
   const checkJokeAnswer = () => {
     const guess = jokeGuess.toLowerCase().trim();
+    // Require at least 2 characters to prevent empty clicks
+    if (guess.length < 2) {
+      setJokeResult('wrong');
+      return;
+    }
     const answer = todayJoke.a.toLowerCase();
     if (answer.includes(guess) || guess.includes(answer) || (guess.length > 3 && answer.includes(guess.slice(0, -1)))) {
       setJokeResult('correct');
@@ -325,6 +330,11 @@ export default function SebastianWorld() {
 
   const checkRiddleAnswer = () => {
     const guess = riddleGuess.toLowerCase().trim();
+    // Require at least 2 characters to prevent empty clicks
+    if (guess.length < 2) {
+      setRiddleResult('wrong');
+      return;
+    }
     const answer = todayRiddle.a.toLowerCase();
     if (answer.includes(guess) || guess.includes(answer)) {
       setRiddleResult('correct');
