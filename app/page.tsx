@@ -237,6 +237,14 @@ export default function SebastianWorld() {
     { id: '5', url: '/photos/hawaii.jpg', caption: 'Hawaii Adventure 🌺', isImage: true },
   ]);
 
+  // Streak counter state
+  const [streak, setStreak] = useState(0);
+  const [bestStreak, setBestStreak] = useState(0);
+
+  // Drawing enhancement state
+  const [showStickers, setShowStickers] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
+
   const today = new Date().toISOString().split('T')[0];
 
   // Fetch weather for Palos Verdes
@@ -295,6 +303,44 @@ export default function SebastianWorld() {
     
     if (savedJokeEarned === today) setJokeResult('earned');
     if (savedRiddleEarned === today) setRiddleResult('earned');
+    
+    // Load streak data
+    const savedStreak = localStorage.getItem('sebastianStreak');
+    const savedBestStreak = localStorage.getItem('sebastianBestStreak');
+    const lastVisit = localStorage.getItem('sebastianLastVisit');
+    
+    if (savedBestStreak) setBestStreak(parseInt(savedBestStreak));
+    
+    if (lastVisit) {
+      const lastDate = new Date(lastVisit);
+      const todayDate = new Date(today);
+      const diffTime = todayDate.getTime() - lastDate.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      if (diffDays === 0) {
+        // Same day, restore current streak
+        if (savedStreak) setStreak(parseInt(savedStreak));
+      } else if (diffDays === 1) {
+        // Consecutive day, increment streak
+        const newStreak = savedStreak ? parseInt(savedStreak) + 1 : 1;
+        setStreak(newStreak);
+        localStorage.setItem('sebastianStreak', newStreak.toString());
+        if (newStreak > (savedBestStreak ? parseInt(savedBestStreak) : 0)) {
+          setBestStreak(newStreak);
+          localStorage.setItem('sebastianBestStreak', newStreak.toString());
+        }
+      } else {
+        // Streak broken
+        setStreak(1);
+        localStorage.setItem('sebastianStreak', '1');
+      }
+    } else {
+      // First visit ever
+      setStreak(1);
+      localStorage.setItem('sebastianStreak', '1');
+    }
+    
+    localStorage.setItem('sebastianLastVisit', today);
     
     const todayDate = new Date();
     const dayOfYear = Math.floor((todayDate.getTime() - new Date(todayDate.getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24));
@@ -511,6 +557,138 @@ export default function SebastianWorld() {
     }
   };
 
+  const addSticker = (sticker: string) => {
+    const canvas = canvasRef.current;
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        // Add sticker at random position
+        const x = Math.random() * (canvas.width - 40) + 20;
+        const y = Math.random() * (canvas.height - 40) + 20;
+        ctx.font = '30px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(sticker, x, y);
+      }
+    }
+  };
+
+  const loadTemplate = (template: string) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
+    // Clear canvas first
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    setSelectedTemplate(template);
+    
+    // Draw template outline (light gray)
+    ctx.strokeStyle = '#E0E0E0';
+    ctx.lineWidth = 2;
+    
+    const w = canvas.width;
+    const h = canvas.height;
+    
+    switch (template) {
+      case 'house':
+        // House base
+        ctx.strokeRect(w/2 - 60, h/2 + 20, 120, 80);
+        // Roof (triangle)
+        ctx.beginPath();
+        ctx.moveTo(w/2 - 70, h/2 + 20);
+        ctx.lineTo(w/2, h/2 - 60);
+        ctx.lineTo(w/2 + 70, h/2 + 20);
+        ctx.closePath();
+        ctx.stroke();
+        // Door
+        ctx.strokeRect(w/2 - 20, h/2 + 50, 40, 50);
+        // Window
+        ctx.strokeRect(w/2 - 40, h/2 + 30, 30, 30);
+        break;
+        
+      case 'sun':
+        // Sun center
+        ctx.beginPath();
+        ctx.arc(w/2, h/2, 50, 0, 2 * Math.PI);
+        ctx.stroke();
+        // Sun rays
+        for (let i = 0; i < 8; i++) {
+          const angle = (i * Math.PI * 2) / 8;
+          ctx.beginPath();
+          ctx.moveTo(w/2 + Math.cos(angle) * 60, h/2 + Math.sin(angle) * 60);
+          ctx.lineTo(w/2 + Math.cos(angle) * 85, h/2 + Math.sin(angle) * 85);
+          ctx.stroke();
+        }
+        break;
+        
+      case 'tree':
+        // Trunk
+        ctx.strokeRect(w/2 - 15, h/2 + 60, 30, 70);
+        // Leaves (3 circles)
+        ctx.beginPath();
+        ctx.arc(w/2, h/2 - 20, 50, 0, 2 * Math.PI);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(w/2 - 40, h/2 + 10, 35, 0, 2 * Math.PI);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(w/2 + 40, h/2 + 10, 35, 0, 2 * Math.PI);
+        ctx.stroke();
+        break;
+        
+      case 'flower':
+        // Stem
+        ctx.strokeRect(w/2 - 5, h/2 + 20, 10, 100);
+        // Center
+        ctx.beginPath();
+        ctx.arc(w/2, h/2, 25, 0, 2 * Math.PI);
+        ctx.stroke();
+        // Petals
+        for (let i = 0; i < 6; i++) {
+          const angle = (i * Math.PI * 2) / 6;
+          ctx.beginPath();
+          ctx.ellipse(
+            w/2 + Math.cos(angle) * 45, 
+            h/2 + Math.sin(angle) * 45, 
+            20, 35, 
+            angle, 
+            0, 2 * Math.PI
+          );
+          ctx.stroke();
+        }
+        break;
+        
+      case 'cat':
+        // Head
+        ctx.beginPath();
+        ctx.arc(w/2, h/2 - 30, 45, 0, 2 * Math.PI);
+        ctx.stroke();
+        // Ears (triangles)
+        ctx.beginPath();
+        ctx.moveTo(w/2 - 35, h/2 - 60);
+        ctx.lineTo(w/2 - 50, h/2 - 90);
+        ctx.lineTo(w/2 - 15, h/2 - 70);
+        ctx.closePath();
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(w/2 + 35, h/2 - 60);
+        ctx.lineTo(w/2 + 50, h/2 - 90);
+        ctx.lineTo(w/2 + 15, h/2 - 70);
+        ctx.closePath();
+        ctx.stroke();
+        // Body
+        ctx.strokeRect(w/2 - 35, h/2 + 15, 70, 90);
+        // Tail
+        ctx.beginPath();
+        ctx.moveTo(w/2 + 35, h/2 + 40);
+        ctx.quadraticCurveTo(w/2 + 70, h/2 + 20, w/2 + 60, h/2 - 10);
+        ctx.stroke();
+        break;
+    }
+  };
+
   const saveDrawing = () => {
     const canvas = canvasRef.current;
     if (canvas && drawingName.trim()) {
@@ -712,12 +890,78 @@ export default function SebastianWorld() {
           </div>
         </div>
 
+        {/* STREAK COUNTER */}
+        <div className="pixel-border bg-gradient-to-br from-orange-100 to-red-100 rounded-lg p-6 md:col-span-2">
+          <div className="flex items-center justify-center gap-8">
+            <div className="text-center">
+              <div className="text-4xl mb-1">🔥</div>
+              <div className="text-3xl font-bold text-orange-600">{streak}</div>
+              <div className="text-sm text-orange-700 font-bold">Day Streak!</div>
+            </div>
+            <div className="text-center">
+              <div className="text-4xl mb-1">🏆</div>
+              <div className="text-3xl font-bold text-yellow-600">{bestStreak}</div>
+              <div className="text-sm text-yellow-700 font-bold">Best Streak!</div>
+            </div>
+            <div className="text-center bg-white/70 rounded-lg p-3 pixel-border">
+              <p className="text-sm text-gray-600">
+                {streak >= 7 ? '🌟 You\'re on fire! Keep it up!' : 
+                 streak >= 3 ? '💪 Great job! Keep the streak going!' : 
+                 '👋 Come back tomorrow to build your streak!'}
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* DRAWING PAD */}
         <div className="pixel-border bg-indigo-100 rounded-lg p-6 md:col-span-2">
           <h2 className="text-2xl font-bold text-center mb-4 text-indigo-800">
             🎨 Drawing Pad 🎨
           </h2>
           <div className="bg-white rounded-lg p-4 pixel-border">
+            {/* Templates */}
+            <div className="mb-3">
+              <p className="text-sm text-indigo-600 font-bold mb-2 text-center">📋 Templates:</p>
+              <div className="flex flex-wrap gap-2 justify-center">
+                <button 
+                  onClick={() => loadTemplate('house')}
+                  className={`px-3 py-1 rounded-lg text-sm font-bold ${selectedTemplate === 'house' ? 'bg-indigo-500 text-white' : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'}`}
+                >
+                  🏠 House
+                </button>
+                <button 
+                  onClick={() => loadTemplate('sun')}
+                  className={`px-3 py-1 rounded-lg text-sm font-bold ${selectedTemplate === 'sun' ? 'bg-indigo-500 text-white' : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'}`}
+                >
+                  ☀️ Sun
+                </button>
+                <button 
+                  onClick={() => loadTemplate('tree')}
+                  className={`px-3 py-1 rounded-lg text-sm font-bold ${selectedTemplate === 'tree' ? 'bg-indigo-500 text-white' : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'}`}
+                >
+                  🌳 Tree
+                </button>
+                <button 
+                  onClick={() => loadTemplate('flower')}
+                  className={`px-3 py-1 rounded-lg text-sm font-bold ${selectedTemplate === 'flower' ? 'bg-indigo-500 text-white' : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'}`}
+                >
+                  🌸 Flower
+                </button>
+                <button 
+                  onClick={() => loadTemplate('cat')}
+                  className={`px-3 py-1 rounded-lg text-sm font-bold ${selectedTemplate === 'cat' ? 'bg-indigo-500 text-white' : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'}`}
+                >
+                  🐱 Cat
+                </button>
+                <button 
+                  onClick={() => {setSelectedTemplate(null); clearCanvas();}}
+                  className="px-3 py-1 rounded-lg text-sm font-bold bg-gray-200 text-gray-700 hover:bg-gray-300"
+                >
+                  🧹 Clear
+                </button>
+              </div>
+            </div>
+
             {/* Color Palette */}
             <div className="flex flex-wrap gap-2 mb-3 justify-center">
               {colors.map(color => (
@@ -767,6 +1011,34 @@ export default function SebastianWorld() {
               onTouchMove={draw}
             />
 
+            {/* Stickers Button */}
+            <div className="flex justify-center mt-3">
+              <button 
+                onClick={() => setShowStickers(!showStickers)}
+                className="bg-pink-400 text-white font-bold py-2 px-4 rounded-lg hover:bg-pink-500 transition-colors"
+              >
+                {showStickers ? 'Hide Stickers 🙈' : 'Add Stickers ✨'}
+              </button>
+            </div>
+
+            {/* Stickers Panel */}
+            {showStickers && (
+              <div className="mt-3 p-3 bg-pink-50 rounded-lg border-2 border-pink-200">
+                <p className="text-sm text-pink-600 font-bold mb-2 text-center">Click a sticker to add it:</p>
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {['⭐', '❤️', '🌈', '🌟', '💎', '🎈', '🎨', '🌸', '🦋', '🐢', '🐼', '🐕', '🌺', '🍄', '⚡', '🔥', '💫', '🎵', '🏆', '🌙'].map((sticker, i) => (
+                    <button
+                      key={i}
+                      onClick={() => addSticker(sticker)}
+                      className="text-2xl p-2 hover:bg-pink-200 rounded-lg transition-colors"
+                    >
+                      {sticker}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Save Controls */}
             <div className="flex gap-2 mt-3 justify-center flex-wrap">
               <input
@@ -779,7 +1051,7 @@ export default function SebastianWorld() {
               <button onClick={saveDrawing} className="lego-btn-green text-white font-bold py-2 px-4 rounded-lg">
                 Save 💾
               </button>
-              <button onClick={clearCanvas} className="lego-btn text-white font-bold py-2 px-4 rounded-lg">
+              <button onClick={() => {clearCanvas(); setSelectedTemplate(null);}} className="lego-btn text-white font-bold py-2 px-4 rounded-lg">
                 Clear 🗑️
               </button>
             </div>
