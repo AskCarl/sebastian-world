@@ -515,28 +515,6 @@ export default function SebastianWorld() {
         className="fixed left-4 top-1/3 w-12 md:w-16 opacity-70 hover:opacity-100 transition-opacity z-10 rotate-45"
       />
       
-      {/* Mario & Sonic Decorations */}
-      <img 
-        src="/photos/mario.png" 
-        alt="Mario" 
-        className="fixed right-4 top-2/3 w-16 md:w-24 opacity-90 hover:opacity-100 transition-opacity z-10 hover:scale-110 transition-transform"
-      />
-      <img 
-        src="/photos/sonic.png" 
-        alt="Sonic" 
-        className="fixed left-1/4 bottom-8 w-14 md:w-20 opacity-90 hover:opacity-100 transition-opacity z-10 hover:scale-110 transition-transform"
-      />
-      <img 
-        src="/photos/mushroom.png" 
-        alt="Super Mushroom" 
-        className="fixed right-1/3 top-16 w-10 md:w-14 opacity-85 hover:opacity-100 transition-opacity z-10 hover:scale-110 transition-transform"
-      />
-      <img 
-        src="/photos/rings.png" 
-        alt="Rings" 
-        className="fixed right-8 bottom-1/3 w-12 md:w-16 opacity-80 hover:opacity-100 transition-opacity z-10 hover:rotate-12 transition-transform"
-      />
-      
       {/* Header */}
       <div className="text-center mb-8">
         <div className="flex items-center justify-center gap-4">
