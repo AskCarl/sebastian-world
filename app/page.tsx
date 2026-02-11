@@ -1557,13 +1557,13 @@ export default function SebastianWorld() {
                 <div className="text-xs text-gray-500">Loyal & playful</div>
               </button>
               <button 
-                onClick={() => adoptPet('Cat', '🐱')}
+                onClick={() => adoptPet('Sea Turtle', '🐢')}
                 disabled={!petNameInput.trim()}
                 className="bg-white border-4 border-purple-300 rounded-lg p-4 hover:bg-purple-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <div className="text-4xl mb-2">🐱</div>
-                <div className="font-bold text-purple-700">Cat</div>
-                <div className="text-xs text-gray-500">Curious & cuddly</div>
+                <div className="text-4xl mb-2">🐢</div>
+                <div className="font-bold text-purple-700">Sea Turtle</div>
+                <div className="text-xs text-gray-500">Chill & wise</div>
               </button>
               <button 
                 onClick={() => adoptPet('Dragon', '🐉')}
