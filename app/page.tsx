@@ -192,8 +192,8 @@ export default function SebastianWorld() {
   const [todayWord, setTodayWord] = useState(wordOfTheDay[0]);
   const [jokeGuess, setJokeGuess] = useState('');
   const [riddleGuess, setRiddleGuess] = useState('');
-  const [jokeResult, setJokeResult] = useState<'correct' | 'wrong' | 'earned' | null>(null);
-  const [riddleResult, setRiddleResult] = useState<'correct' | 'wrong' | 'earned' | null>(null);
+  const [jokeResult, setJokeResult] = useState<'correct' | 'wrong' | 'earned' | 'revealed' | null>(null);
+  const [riddleResult, setRiddleResult] = useState<'correct' | 'wrong' | 'earned' | 'revealed' | null>(null);
   const [mathProblem, setMathProblem] = useState({ num1: 0, num2: 0, op: '+', answer: 0 });
   const [userAnswer, setUserAnswer] = useState('');
   const [mathResult, setMathResult] = useState<'correct' | 'wrong' | null>(null);
@@ -410,6 +410,11 @@ export default function SebastianWorld() {
     }
   };
 
+  const revealJokeAnswer = () => {
+    setJokeResult('revealed');
+    localStorage.setItem('jokeEarnedDate', today); // Mark as completed but no bucks
+  };
+
   const checkRiddleAnswer = () => {
     const guess = riddleGuess.toLowerCase().trim();
     // Require at least 2 characters to prevent empty clicks
@@ -426,6 +431,11 @@ export default function SebastianWorld() {
     } else {
       setRiddleResult('wrong');
     }
+  };
+
+  const revealRiddleAnswer = () => {
+    setRiddleResult('revealed');
+    localStorage.setItem('riddleEarnedDate', today); // Mark as completed but no bucks
   };
 
   // Journal functions
@@ -857,10 +867,16 @@ export default function SebastianWorld() {
           </h2>
           <div className="bg-white rounded-lg p-3 pixel-border">
             <p className="text-base text-gray-800 mb-3">{todayJoke.q}</p>
-            {jokeResult === 'earned' ? (
+            {jokeResult === 'earned' || jokeResult === 'revealed' ? (
               <div>
                 <p className="text-base font-bold text-pink-600">{todayJoke.display}</p>
-                <p className="text-green-500 text-sm mt-1">Come back tomorrow! 🌟</p>
+                <p className="text-sm mt-1">
+                  {jokeResult === 'earned' ? (
+                    <span className="text-green-500">Great job! Come back tomorrow! 🌟</span>
+                  ) : (
+                    <span className="text-gray-500">Answer revealed — try again tomorrow! 🎯</span>
+                  )}
+                </p>
               </div>
             ) : jokeResult === 'correct' ? (
               <div className="text-xl text-green-500 font-bold bounce">🎉 +$2! 🎉</div>
@@ -874,9 +890,14 @@ export default function SebastianWorld() {
                   placeholder="Your guess..."
                   className="w-full border-3 border-pink-300 rounded-lg p-2 mb-2 text-sm"
                 />
-                <button onClick={checkJokeAnswer} className="lego-btn text-white font-bold py-1 px-4 rounded-lg text-sm">
-                  Guess! 🎯
-                </button>
+                <div className="flex gap-2">
+                  <button onClick={checkJokeAnswer} className="lego-btn text-white font-bold py-1 px-4 rounded-lg text-sm">
+                    Guess! 🎯
+                  </button>
+                  <button onClick={revealJokeAnswer} className="bg-gray-400 text-white font-bold py-1 px-3 rounded-lg text-sm hover:bg-gray-500">
+                    Show Answer 👁️
+                  </button>
+                </div>
                 {jokeResult === 'wrong' && <p className="text-red-500 text-sm mt-1">Try again!</p>}
               </div>
             )}
@@ -890,10 +911,16 @@ export default function SebastianWorld() {
           </h2>
           <div className="bg-white rounded-lg p-3 pixel-border">
             <p className="text-base text-gray-800 mb-3">{todayRiddle.q}</p>
-            {riddleResult === 'earned' ? (
+            {riddleResult === 'earned' || riddleResult === 'revealed' ? (
               <div>
                 <p className="text-base font-bold text-purple-600">{todayRiddle.display}</p>
-                <p className="text-green-500 text-sm mt-1">Come back tomorrow! 🌟</p>
+                <p className="text-sm mt-1">
+                  {riddleResult === 'earned' ? (
+                    <span className="text-green-500">Great job! Come back tomorrow! 🌟</span>
+                  ) : (
+                    <span className="text-gray-500">Answer revealed — try again tomorrow! 🎯</span>
+                  )}
+                </p>
               </div>
             ) : riddleResult === 'correct' ? (
               <div className="text-xl text-green-500 font-bold bounce">🎉 +$2! 🎉</div>
@@ -907,9 +934,14 @@ export default function SebastianWorld() {
                   placeholder="Your guess..."
                   className="w-full border-3 border-purple-300 rounded-lg p-2 mb-2 text-sm"
                 />
-                <button onClick={checkRiddleAnswer} className="lego-btn-blue text-white font-bold py-1 px-4 rounded-lg text-sm">
-                  Guess! 🎯
-                </button>
+                <div className="flex gap-2">
+                  <button onClick={checkRiddleAnswer} className="lego-btn-blue text-white font-bold py-1 px-4 rounded-lg text-sm">
+                    Guess! 🎯
+                  </button>
+                  <button onClick={revealRiddleAnswer} className="bg-gray-400 text-white font-bold py-1 px-3 rounded-lg text-sm hover:bg-gray-500">
+                    Show Answer 👁️
+                  </button>
+                </div>
                 {riddleResult === 'wrong' && <p className="text-red-500 text-sm mt-1">Try again!</p>}
               </div>
             )}
