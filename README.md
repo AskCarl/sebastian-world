@@ -1,36 +1,51 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Sebastian's World
 
-## Getting Started
+An interactive daily companion app built for my 6-year-old son Sebastian. Jokes, riddles, math challenges, a virtual pet, drawing canvas, journal, and more — all in one place he can open every morning.
 
-First, run the development server:
+## What's Inside
+
+**Daily Rotation** — New content every day, powered by day-of-year cycling:
+- 50 kid jokes (Minecraft, animals, puns) with guess-the-punchline
+- 50 riddles with interactive answer checking
+- Motivational quotes from Winnie the Pooh, Dr. Seuss, Dory, Buzz Lightyear
+- Word of the Day with English/Spanish pairs and phonetic pronunciation
+
+**Learning**
+- Math challenges (addition, subtraction, multiplication) with difficulty scaling
+- Bilingual vocabulary — character virtues, nature/science, big philosophical concepts
+- Bash Bucks reward system for correct answers
+
+**Creative**
+- Drawing canvas with color picker, brush sizes, stickers, and templates
+- Daily journal with history
+- Photo album with family memories (sea turtles, Fu Bao the panda, Moby the dog, Hawaii)
+
+**Games**
+- Memory match card game with best-score tracking
+- Virtual pet — feed, play, level up (hunger/happiness/energy decay overnight)
+- Daily streak counter
+
+**Utilities**
+- Calendar with reminders
+- Live weather for Palos Verdes
+- Parent admin panel (hidden) for setting daily goals and managing Bash Bucks
+
+## Tech Stack
+
+- Next.js (App Router, TypeScript)
+- Tailwind CSS
+- LocalStorage for persistence (no backend needed)
+- [wttr.in](https://wttr.in) for weather
+
+## Run It
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Built With
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Built by a dad who wanted to make something his kid would actually use every day. Vibe-coded with AI.
