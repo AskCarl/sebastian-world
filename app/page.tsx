@@ -166,6 +166,38 @@ const wordOfTheDay = [
   { english: "Brilliance", spanish: "Brillantez", emoji: "💎", pronunciation: "BRIL-yuns" },
 ];
 
+const typingWords = {
+  cadet: [
+    "dragon", "castle", "wizard", "knight", "rocket", "planet", "robot", "tiger",
+    "panda", "shark", "magic", "sword", "shield", "diamond", "emerald", "golden",
+    "ocean", "jungle", "forest", "sunset", "garden", "frosty", "mighty", "brave",
+    "swift", "silent", "comet", "falcon", "parrot", "mango", "helmet", "treasure",
+    "sparkle", "crystal", "thunder", "lightning", "monster", "creature", "rainbow",
+    "kitten", "puppy", "bunny", "phoenix", "kraken", "ninja", "pirate", "viking",
+  ],
+  hero: [
+    "adventure", "dinosaur", "elephant", "butterfly", "kangaroo", "penguin",
+    "mystery", "science", "library", "kitchen", "pumpkin", "snowman", "spaghetti",
+    "blueberry", "telescope", "spaceship", "incredible", "fantastic", "beautiful",
+    "dangerous", "marvelous", "hurricane", "volcano", "kingdom", "champion",
+    "gladiator", "explorer", "courageous", "magnificent", "dictionary", "mysterious",
+    "knowledge", "intelligent", "brilliant", "stardust", "midnight", "blizzard",
+    "mountain", "treasure", "fireball", "snowflake", "crocodile", "dolphin",
+    "octopus", "cheetah", "gorilla", "creeper", "Minecraft",
+  ],
+  legend: [
+    "extraordinary", "magnificent", "mountainous", "microscope", "laboratory",
+    "experiment", "discovery", "vocabulary", "encyclopedia", "championship",
+    "supersonic", "intergalactic", "hippopotamus", "rhinoceros", "pterodactyl",
+    "archaeology", "photosynthesis", "paleontologist", "astronaut", "unbelievable",
+    "thunderstorm", "constellation", "civilization", "exploration", "imagination",
+    "celebration", "illustration", "observation", "transformation", "tyrannosaurus",
+    "mathematics", "electromagnetic", "submarine", "wilderness", "dangerously",
+    "incredibly", "astonishing", "spectacular", "tremendous", "phenomenon",
+    "chocolate", "spaghettios", "kindergarten", "playground",
+  ],
+};
+
 interface Reminder {
   id: string;
   date: string;
@@ -268,6 +300,17 @@ export default function SebastianWorld() {
   const [memoryGameWon, setMemoryGameWon] = useState(false);
   const [memoryBestScore, setMemoryBestScore] = useState<number | null>(null);
 
+  // Typing Game state
+  const [typingWord, setTypingWord] = useState('');
+  const [typingInput, setTypingInput] = useState('');
+  const [typingLevel, setTypingLevel] = useState<'cadet' | 'hero' | 'legend'>('cadet');
+  const [typingScore, setTypingScore] = useState(0);
+  const [typingStreak, setTypingStreak] = useState(0);
+  const [typingBestStreak, setTypingBestStreak] = useState(0);
+  const [typingFlash, setTypingFlash] = useState<'correct' | 'levelup' | null>(null);
+  const [typingLevelUpTo, setTypingLevelUpTo] = useState<string>('');
+  const typingInputRef = useRef<HTMLInputElement>(null);
+
   const today = new Date().toISOString().split('T')[0];
 
   // Fetch weather for Palos Verdes
@@ -368,9 +411,14 @@ export default function SebastianWorld() {
     // Load memory game best score
     const savedMemoryBest = localStorage.getItem('sebastianMemoryBest');
     if (savedMemoryBest) setMemoryBestScore(parseInt(savedMemoryBest));
-    
+
     // Initialize memory game
     initMemoryGame();
+
+    // Load typing game best streak
+    const savedTypingBest = localStorage.getItem('sebastianTypingBestStreak');
+    if (savedTypingBest) setTypingBestStreak(parseInt(savedTypingBest));
+    pickTypingWord('cadet');
     
     // Load pet data
     const savedPet = localStorage.getItem('sebastianPet');
@@ -385,7 +433,7 @@ export default function SebastianWorld() {
         petData.energy = Math.min(100, petData.energy + (20 * daysSince));
       }
       setPet(petData);
-    } else {
+    } else if (!localStorage.getItem('sebastianPetSkipped')) {
       setShowPetSelector(true);
     }
     
@@ -790,6 +838,73 @@ export default function SebastianWorld() {
     }
   };
 
+  // Typing Game functions
+  const pickTypingWord = (level: 'cadet' | 'hero' | 'legend', avoid?: string) => {
+    const bank = typingWords[level];
+    let next = bank[Math.floor(Math.random() * bank.length)];
+    if (avoid && bank.length > 1) {
+      while (next === avoid) {
+        next = bank[Math.floor(Math.random() * bank.length)];
+      }
+    }
+    setTypingWord(next);
+    setTypingInput('');
+    setTimeout(() => typingInputRef.current?.focus(), 50);
+  };
+
+  const handleTypingChange = (value: string) => {
+    setTypingInput(value);
+    if (value.toLowerCase() === typingWord.toLowerCase() && typingWord) {
+      const newScore = typingScore + 1;
+      const newStreak = typingStreak + 1;
+      setTypingScore(newScore);
+      setTypingStreak(newStreak);
+      setTypingFlash('correct');
+
+      if (newStreak > typingBestStreak) {
+        setTypingBestStreak(newStreak);
+        localStorage.setItem('sebastianTypingBestStreak', newStreak.toString());
+      }
+
+      // Bash Bucks every 10 words
+      if (newScore % 10 === 0) {
+        addBucks(1);
+        setTimeout(() => {
+          alert(`⌨️ 10 words typed! +$1 Bash Buck! 🐷💰`);
+        }, 500);
+      }
+
+      // Level progression: cadet 1-7, hero 8-19, legend 20+
+      let nextLevel: 'cadet' | 'hero' | 'legend' = typingLevel;
+      if (newScore === 8) {
+        nextLevel = 'hero';
+        setTypingLevel('hero');
+        setTypingLevelUpTo('HERO');
+        setTypingFlash('levelup');
+      } else if (newScore === 20) {
+        nextLevel = 'legend';
+        setTypingLevel('legend');
+        setTypingLevelUpTo('LEGEND');
+        setTypingFlash('levelup');
+      }
+
+      setTimeout(() => {
+        setTypingFlash(null);
+        pickTypingWord(nextLevel, typingWord);
+      }, nextLevel !== typingLevel ? 1800 : 700);
+    }
+  };
+
+  const skipTypingWord = () => {
+    setTypingStreak(0);
+    pickTypingWord(typingLevel, typingWord);
+  };
+
+  const setTypingLevelManual = (level: 'cadet' | 'hero' | 'legend') => {
+    setTypingLevel(level);
+    pickTypingWord(level, typingWord);
+  };
+
   const loadTemplate = (template: string) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -1166,6 +1281,104 @@ export default function SebastianWorld() {
           )}
         </div>
 
+        {/* TYPING GAME */}
+        <div className="pixel-border bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg p-6 md:col-span-2">
+          <h2 className="text-2xl font-bold text-center mb-3 text-purple-800">
+            ⌨️ Type Quest ⌨️
+          </h2>
+          <div className="text-center mb-4">
+            <div className="flex items-center justify-center gap-4 flex-wrap">
+              <span className="text-sm font-bold px-3 py-1 rounded-full bg-purple-500 text-white">
+                {typingLevel === 'cadet' ? '🛡️ CADET' : typingLevel === 'hero' ? '⚔️ HERO' : '🐉 LEGEND'}
+              </span>
+              <span className="text-sm font-bold text-purple-700">Words: {typingScore}</span>
+              <span className="text-sm font-bold text-pink-700">🔥 Streak: {typingStreak}</span>
+              {typingBestStreak > 0 && (
+                <span className="text-sm font-bold text-yellow-700">🏆 Best: {typingBestStreak}</span>
+              )}
+            </div>
+            <p className="text-xs text-purple-500 mt-1">
+              💰 Type 10 words = +$1 Bash Buck! ({10 - (typingScore % 10)} more!)
+            </p>
+          </div>
+
+          <div className="bg-white rounded-lg p-6 pixel-border relative overflow-hidden">
+            {typingFlash === 'levelup' && (
+              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-yellow-300 to-orange-400 z-10 bounce">
+                <div className="text-center">
+                  <div className="text-5xl mb-2">🎉🚀🎉</div>
+                  <div className="text-3xl font-bold text-white drop-shadow-lg">LEVEL UP!</div>
+                  <div className="text-2xl font-bold text-white drop-shadow-lg mt-1">{typingLevelUpTo} MODE</div>
+                </div>
+              </div>
+            )}
+
+            <div className="text-center mb-4 min-h-[60px] flex items-center justify-center flex-wrap gap-1">
+              {typingWord.split('').map((letter, i) => {
+                const typed = typingInput[i];
+                let color = 'text-gray-400';
+                if (typed != null) {
+                  color = typed.toLowerCase() === letter.toLowerCase() ? 'text-green-500' : 'text-red-500 underline';
+                }
+                return (
+                  <span key={i} className={`text-4xl md:text-5xl font-bold ${color} transition-colors`}>
+                    {letter}
+                  </span>
+                );
+              })}
+            </div>
+
+            <div className="flex gap-2 justify-center items-center">
+              <input
+                ref={typingInputRef}
+                type="text"
+                value={typingInput}
+                onChange={(e) => handleTypingChange(e.target.value)}
+                autoFocus
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck={false}
+                className="text-2xl font-bold text-center border-4 border-purple-400 rounded-lg p-2 w-full max-w-md focus:border-pink-500 focus:outline-none"
+                placeholder="Type the word!"
+              />
+            </div>
+
+            {typingFlash === 'correct' && (
+              <div className="mt-3 text-center text-3xl font-bold text-green-500 bounce">
+                ✨ NICE! ✨
+              </div>
+            )}
+
+            <div className="flex gap-2 justify-center mt-4 flex-wrap">
+              <button
+                onClick={skipTypingWord}
+                className="bg-gray-400 text-white font-bold py-2 px-4 rounded-lg text-sm hover:bg-gray-500"
+              >
+                Skip ⏭️
+              </button>
+              <button
+                onClick={() => setTypingLevelManual('cadet')}
+                className={`font-bold py-2 px-3 rounded-lg text-sm ${typingLevel === 'cadet' ? 'bg-purple-600 text-white' : 'bg-purple-200 text-purple-800 hover:bg-purple-300'}`}
+              >
+                🛡️ Cadet
+              </button>
+              <button
+                onClick={() => setTypingLevelManual('hero')}
+                className={`font-bold py-2 px-3 rounded-lg text-sm ${typingLevel === 'hero' ? 'bg-pink-600 text-white' : 'bg-pink-200 text-pink-800 hover:bg-pink-300'}`}
+              >
+                ⚔️ Hero
+              </button>
+              <button
+                onClick={() => setTypingLevelManual('legend')}
+                className={`font-bold py-2 px-3 rounded-lg text-sm ${typingLevel === 'legend' ? 'bg-orange-600 text-white' : 'bg-orange-200 text-orange-800 hover:bg-orange-300'}`}
+              >
+                🐉 Legend
+              </button>
+            </div>
+          </div>
+        </div>
+
         {/* STREAK COUNTER */}
         <div className="pixel-border bg-gradient-to-br from-orange-100 to-red-100 rounded-lg p-6 md:col-span-2">
           <div className="flex items-center justify-center gap-8">
@@ -1188,6 +1401,23 @@ export default function SebastianWorld() {
             </div>
           </div>
         </div>
+
+        {/* ADOPT A PET CTA */}
+        {!pet && (
+          <div className="pixel-border bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg p-6 md:col-span-2 text-center">
+            <h2 className="text-2xl font-bold mb-3 text-purple-800">🐾 Want a Pet? 🐾</h2>
+            <p className="text-gray-600 mb-4">Adopt a virtual pet to feed, play with, and level up!</p>
+            <button
+              onClick={() => {
+                localStorage.removeItem('sebastianPetSkipped');
+                setShowPetSelector(true);
+              }}
+              className="lego-btn-purple bg-purple-500 hover:bg-purple-600 text-white font-bold py-3 px-6 rounded-lg text-lg"
+            >
+              Adopt a Pet 🐾
+            </button>
+          </div>
+        )}
 
         {/* VIRTUAL PET */}
         {pet && (
@@ -1723,7 +1953,7 @@ export default function SebastianWorld() {
                 <div className="font-bold text-purple-700">Dragon</div>
                 <div className="text-xs text-gray-500">Magical & brave</div>
               </button>
-              <button 
+              <button
                 onClick={() => adoptPet('Unicorn', '🦄')}
                 disabled={!petNameInput.trim()}
                 className="bg-white border-4 border-purple-300 rounded-lg p-4 hover:bg-purple-50 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -1731,6 +1961,19 @@ export default function SebastianWorld() {
                 <div className="text-4xl mb-2">🦄</div>
                 <div className="font-bold text-purple-700">Unicorn</div>
                 <div className="text-xs text-gray-500">Sparkly & kind</div>
+              </button>
+            </div>
+
+            <div className="flex justify-center">
+              <button
+                onClick={() => {
+                  localStorage.setItem('sebastianPetSkipped', '1');
+                  setShowPetSelector(false);
+                  setPetNameInput('');
+                }}
+                className="text-gray-500 hover:text-gray-700 font-bold text-sm underline"
+              >
+                Maybe Later ⏭️
               </button>
             </div>
           </div>
