@@ -1,40 +1,48 @@
 # Sebastian's World
 
-An interactive daily companion app built for my 6-year-old son Sebastian. Jokes, riddles, math challenges, a virtual pet, drawing canvas, journal, and more — all in one place he can open every morning.
+An interactive learning world built for Sebastian (age 7). What started as a single-page daily companion app is now a whole multi-page world — each zone has its own page, and Bash Bucks earned anywhere show up everywhere.
 
-## What's Inside
+## The Zones
 
-**Daily Rotation** — New content every day, powered by day-of-year cycling:
-- 50 kid jokes (Minecraft, animals, puns) with guess-the-punchline
-- 50 riddles with interactive answer checking
-- Motivational quotes from Winnie the Pooh, Dr. Seuss, Dory, Buzz Lightyear
-- Word of the Day with English/Spanish pairs and phonetic pronunciation
+**🏠 Home Base** (`/`)
+The hub. Daily joke & riddle guessing (+$2 each), daily inspiration quote, English/Spanish Word of the Day, live weather for Palos Verdes, the Bash Bucks piggy bank, day-streak counter, and big colorful doors into every zone. (Parents: tap "Dad + Carl" in the footer 5 times for the admin panel.)
 
-**Learning**
-- Math challenges (addition, subtraction, multiplication) with difficulty scaling
-- Bilingual vocabulary — character virtues, nature/science, big philosophical concepts
-- Bash Bucks reward system for correct answers
+**🧮 Math Zone** (`/math`)
+Three levels — Explorer 🥾, Adventurer ⚔️, Master 🧙 (division & big numbers) — plus a 60-second ⚡ Lightning Round with a saved best score. 10 correct = $1; Lightning pays $1 per 3 correct.
 
-**Creative**
-- Drawing canvas with color picker, brush sizes, stickers, and templates
-- Daily journal with history
-- Photo album with family memories (sea turtles, Fu Bao the panda, Moby the dog, Hawaii)
+**🤖 Coding Lab** (`/coding`)
+Program Robo! Build real programs from Move/Turn commands to steer a robot through 5 grid puzzles to the diamond — walls, crashes, and all. First clear of each level = $3. Plus Type Quest, the typing game with Cadet/Hero/Legend tiers.
 
-**Games**
-- Memory match card game with best-score tracking
-- Virtual pet — feed, play, level up (hunger/happiness/energy decay overnight)
-- Daily streak counter
+**✍️ Writing Studio** (`/writing`)
+Sentence Unscramble (rebuild mixed-up sentences, 3 = $1), the Silly Sentence Machine, Story Time with daily writing prompts (a 20+ word story = $2 once a day), and the daily journal with history.
 
-**Utilities**
-- Calendar with reminders
-- Live weather for Palos Verdes
-- Parent admin panel (hidden) for setting daily goals and managing Bash Bucks
+**📚 Reading Room** (`/reading`)
+Nine original stories across three difficulty levels (⭐ to ⭐⭐⭐) with comprehension questions. A perfect score pays $2–$4 depending on difficulty.
+
+**🔬 Science Station** (`/science`)
+Mind-blowing fact of the day, science quizzes (Animals, Space, Human Body, Earth & Weather), and Guess the Animal — fewer clues used, more bucks earned.
+
+**🎮 Playroom** (`/playroom`)
+The virtual pet (feed/play/groom/sleep, levels & XP), drawing pad with templates and stickers, memory match, the family photo album, and the calendar with reminders.
+
+## For Sebastian 👋
+
+Want to add your own stuff? Look for the ✏️ SEBASTIAN comments in these files:
+
+- `lib/dailyData.ts` — add jokes and riddles
+- `lib/typingData.ts` — add typing words
+- `lib/writingData.ts` — add silly words, sentences, and story ideas
+- `lib/readingData.ts` — write your own story with questions!
+- `lib/scienceData.ts` — add facts, quiz questions, and animal riddles
+- `app/coding/page.tsx` — design your own Robo level (move the 💎, add 🪨 walls)
+
+Change the words, save the file, and your website updates. That's real coding!
 
 ## Tech Stack
 
 - Next.js (App Router, TypeScript)
 - Tailwind CSS
-- LocalStorage for persistence (no backend needed)
+- LocalStorage for persistence (no backend needed) — shared Bash Bucks live in `lib/useBashBucks.ts`, the nav bar in `components/Nav.tsx`
 - [wttr.in](https://wttr.in) for weather
 
 ## Run It
